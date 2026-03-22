@@ -1,103 +1,84 @@
-using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
 using Amazon.SimpleEmail;
 using Amazon.SimpleEmail.Model;
 using Newtonsoft.Json;
-using System.Net;
-using System.Reflection.Metadata;
+using System.Text;
 
-
-// Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
+// Serializer
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
 
 namespace FCG.Lambda.Notifications;
-
-
-/*
-    * Foi criado um email de teste só pra fazer o envio e recebimento, para confirmar que está funionando
-    * Este email foi configurado no AWS SES (Simple Email Service)
-    * Ele foi criado e encontra-se em Sandbox. Por este motivo ele só consegue enviar email para ele mesmo.
-    * Desta forma qualquer email destinatário que a função receba, vamos descartar o destinatário e sermpre enviar para o email abaixo.
-    * ** IMPORTANTE ** os emãils estão caindo na caixa SPAM
-    * 
-    * 
-    * email: fcgpostech@gmail.com
-    * senha: TgbYhn(61
-    * 
-    * Estamos disponibilizando a senha para que logem no gmail e confirmem que os emails estão chegando.
-    *     * 
-    * JSON exemplo para teste no MOCK
-      {\"destinatario\":\"clienteteste@teste.com\",\"assunto\":\"Teste de envio pela AWS Lambda\",\"corpo\":\"Olá! Este é um e-mail de teste enviado pela função Lambda para validação do trabalho acadêmico.\"}
-    * 
-    * FCGNotificationsApi
-    * https://bbn5c427p4.execute-api.us-east-2.amazonaws.com/default/FCGNotifications
-    * JSON exemplo para teste no Postman
-       {
-          "destinatario": "clienteteste@teste.com",
-          "assunto": "Teste de envio pela AWS Lambda",
-          "corpo": "Olá! Este é um e-mail de teste enviado por uma função Lambda para validação do trabalho acadêmico."
-        }
-    * 
-    * 
-    */
 
 public class Function
 {
     private readonly IAmazonSimpleEmailService _sesClient = new AmazonSimpleEmailServiceClient();
 
-    public async Task<APIGatewayProxyResponse> FunctionHandler(
-        APIGatewayProxyRequest request,
-        ILambdaContext context)
+    public async Task FunctionHandler(MQEvent input, ILambdaContext context)
     {
-        try
+        if (input?.messages == null)
         {
-            var dados = JsonConvert.DeserializeObject<emailAEnviar>(request.Body);
+            context.Logger.LogLine("Nenhuma mensagem recebida");
+            return;
+        }
 
-            var emailRequest = new SendEmailRequest
+        foreach (var message in input.messages)
+        {
+            try
             {
-                Source = "fcgpostech@gmail.com", // verificado no SES
-                Destination = new Destination
+                var json = Encoding.UTF8.GetString(Convert.FromBase64String(message.data));
+
+                context.Logger.LogLine("Mensagem recebida: " + json);
+
+                var dados = JsonConvert.DeserializeObject<EmailMessage>(json);
+
+                if (dados == null)
                 {
-                    // conta em sandbox → enviando para e-mail verificado
-                    ToAddresses = new List<string> { "fcgpostech@gmail.com" }
-                },
-                Message = new Message
-                {
-                    Subject = new Content(dados.assunto),
-                    Body = new Body
-                    {
-                        Text = new Content(
-                            "Destinatário original: " + dados.destinatario +
-                            "\n\n" + dados.corpo)
-                    }
+                    context.Logger.LogLine("Erro ao desserializar mensagem");
+                    continue;
                 }
-            };
 
-            await _sesClient.SendEmailAsync(emailRequest);
+                var emailRequest = new SendEmailRequest
+                {
+                    Source = "fcgpostech@gmail.com",
+                    Destination = new Destination
+                    {
+                        ToAddresses = new List<string> { "fcgpostech@gmail.com" }
+                    },
+                    Message = new Message
+                    {
+                        Subject = new Content(dados.Assunto),
+                        Body = new Body
+                        {
+                            Text = new Content(
+                                $"Destinatário original: {dados.Destinatario}\n\n{dados.Corpo}")
+                        }
+                    }
+                };
 
-            return new APIGatewayProxyResponse
+                await _sesClient.SendEmailAsync(emailRequest);
+
+                context.Logger.LogLine("Email enviado com sucesso");
+            }
+            catch (Exception ex)
             {
-                StatusCode = (int)HttpStatusCode.OK,
-                Body = "Email enviado com sucesso"
-            };
+                context.Logger.LogLine("Erro ao processar mensagem: " + ex.Message);
+            }
         }
-        catch (Exception ex)
-        {
-            // log simples para CloudWatch
-            context.Logger.LogLine("Erro ao enviar e-mail: " + ex.Message + " stacktrace: " + ex.StackTrace);
-
-            return new APIGatewayProxyResponse
-            {
-                StatusCode = (int)HttpStatusCode.InternalServerError,
-                Body = "Falha ao enviar e-mail " + ex.Message + " stacktrace: " + ex.StackTrace
-            };
-        }
-    }
+    } 
 }
 
-public class emailAEnviar
+public class EmailMessage
 {
-    public string destinatario { get; set; }
-    public string assunto { get; set; }
-    public string corpo { get; set; }
+    public string Destinatario { get; set; }
+    public string Assunto { get; set; }
+    public string Corpo { get; set; }
+}
+public class MQEvent
+{
+    public List<MQMessage> messages { get; set; }
+}
+
+public class MQMessage
+{
+    public string data { get; set; }
 }

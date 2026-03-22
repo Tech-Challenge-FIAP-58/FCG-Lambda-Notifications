@@ -1,0 +1,70 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build directories
+**/bin/
+**/obj/
+
+# Rider
+.idea/
+*.sln.iml
+
+# Visual Studio Code
+.vscode/
+
+# NuGet
+*.nupkg
+# The packages folder can be ignored because of PackageReference
+**/packages/
+
+# Dotnet publish / deployment artifacts
+publish/
+artifacts/
+*.publish/
+
+# Test results
+TestResults/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# AWS / Lambda local files
+.aws/
+.aws/*
+serverless_
+serverless.yml
+.aws-sam/
+.aws-sam/*
+
+# AWS Lambda .NET tooling
+aws-lambda-tools-defaults.json
+"aws-lambda-tools-defaults.json"
+
+# Local secrets / settings
+local.settings.json
+secrets.json
+
+# Resharper
+_ReSharper*/
+*.ReSharper
+
+# Others
+*.cache
+*.db
+
+# Ignore Rider caches
+.idea/
+
+# Ignore user-specific files
+*.userprefs
+
+# Keep the repo clean
+!.gitattributes
