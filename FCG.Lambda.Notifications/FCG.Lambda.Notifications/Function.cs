@@ -29,7 +29,8 @@ public class Function
 
                 context.Logger.LogLine("Mensagem recebida: " + json);
 
-                var dados = JsonConvert.DeserializeObject<EmailMessage>(json);
+                var wrapper = JsonConvert.DeserializeObject<EmailWrapper>(json);
+                var dados = wrapper?.Message;
 
                 if (dados == null)
                 {
@@ -65,6 +66,11 @@ public class Function
             }
         }
     } 
+}
+
+public class EmailWrapper
+{
+    public EmailMessage Message { get; set; }
 }
 
 public class EmailMessage
