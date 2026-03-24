@@ -1,3 +1,8 @@
+# Build artifacts
+[Bb]in/
+[Oo]bj/
+out/
+
 # Visual Studio
 .vs/
 *.user
@@ -5,29 +10,21 @@
 *.userosscache
 *.sln.docstates
 
-# Build directories
-**/bin/
-**/obj/
-
-# Rider
+# Rider / VS Code
 .idea/
-*.sln.iml
-
-# Visual Studio Code
 .vscode/
 
-# NuGet
+# .NET / NuGet
 *.nupkg
-# The packages folder can be ignored because of PackageReference
-**/packages/
+*.snupkg
+packages/
+.nuget/
 
-# Dotnet publish / deployment artifacts
-publish/
-artifacts/
-*.publish/
-
-# Test results
+# Test results / coverage
 TestResults/
+coverage/
+*.coverage
+*.coveragexml
 
 # Logs
 *.log
@@ -36,35 +33,6 @@ TestResults/
 .DS_Store
 Thumbs.db
 
-# AWS / Lambda local files
-.aws/
-.aws/*
-serverless_
-serverless.yml
-.aws-sam/
-.aws-sam/*
-
-# AWS Lambda .NET tooling
-aws-lambda-tools-defaults.json
-"aws-lambda-tools-defaults.json"
-
-# Local secrets / settings
+# Local settings / secrets
 local.settings.json
 secrets.json
-
-# Resharper
-_ReSharper*/
-*.ReSharper
-
-# Others
-*.cache
-*.db
-
-# Ignore Rider caches
-.idea/
-
-# Ignore user-specific files
-*.userprefs
-
-# Keep the repo clean
-!.gitattributes
