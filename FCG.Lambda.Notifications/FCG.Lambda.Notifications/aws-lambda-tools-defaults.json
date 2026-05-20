@@ -6,7 +6,7 @@
     "All the command line options for the Lambda command can be specified in this file."
   ],
   "profile": "default",
-  "region": "us-east-2",
+  "region": "us-east-1",
   "configuration": "Release",
   "function-architecture": "x86_64",
   "function-runtime": "dotnet8",
@@ -16,7 +16,7 @@
   "framework": "net8.0",
   "function-name": "FCGNotifications",
   "package-type": "Zip",
-  "function-role": "arn:aws:iam::042744890775:role/lambda_exec_FCGNotifications",
+  "function-role": "",
   "function-subnets": "",
   "function-security-groups": "",
   "tracing-mode": "PassThrough",
